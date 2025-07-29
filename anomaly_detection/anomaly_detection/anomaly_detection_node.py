@@ -65,7 +65,7 @@ def show_boxes_on_frame(node, frame: np.ndarray, scores: torch.Tensor, thr_sigma
     min_size = 15000
     min_box_score = 0.6
 
-    save_dir = "/home/smartnihar/ros2_ws/src/anomaly_frames" ##################
+    save_dir = "/path/for/anomaly_frames" ##################
     os.makedirs(save_dir, exist_ok=True)
     anomaly = False
 
