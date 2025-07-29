@@ -32,7 +32,7 @@ Patch-wise cosine similarities are computed. Unusual patches (low similarity to 
 
 ### Prerequisites
 
-- ROS2 Humble (or newer)  
+- ROS2 
 - Python 3.8+  
 - CUDA (optional, for GPU acceleration)  
 - A ROS2-compatible camera publishing to `/front_cam/color/image_raw`  
