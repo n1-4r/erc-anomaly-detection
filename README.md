@@ -48,3 +48,24 @@ cd ~/ros2_ws
 rosdep install --from-paths src --ignore-src -r -y
 colcon build
 source install/setup.bash
+``` 
+
+---
+
+### Installing Python Dependencies
+
+```bash
+pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu121
+pip install opencv-python pillow numpy
+pip install cv_bridge
+```
+DinoV2 is installed automatically using `torch.hub`.
+
+---
+
+### Running the Node
+
+```bash
+ros2 run dino_anomaly_ros dino_anomaly_node`
+```
+Ensure your camera is publishing to /front_cam/color/image_raw. You can remap the topic if needed.
