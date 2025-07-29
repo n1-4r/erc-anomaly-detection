@@ -86,7 +86,7 @@ def show_boxes_on_frame(node, frame: np.ndarray, scores: torch.Tensor, thr_sigma
 
         print("Anomaly saved.")
 
-        filename = os.path.join(save_dir, f"{node.anomaly_frame_idx:04d}_a={w*h}_x={x+(w/2)}_y={y+(h/2)}_.png")  #not for nowwwww
+        filename = os.path.join(save_dir, f"{node.anomaly_frame_idx:04d}_a={w*h}_x={x+(w/2)}_y={y+(h/2)}_.png")
         
         #filename = os.path.join(save_dir, f"image_x={x+(w/2)}_y={y+(h/2)}_.png")
         node.anomaly_frame_idx += 1
