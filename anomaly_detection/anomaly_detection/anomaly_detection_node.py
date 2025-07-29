@@ -49,6 +49,8 @@ def show_boxes_on_frame(node, frame: np.ndarray, scores: torch.Tensor, thr_sigma
     if side * side != N:
         raise ValueError("Anomaly scores length is not a perfect square")
 
+    save_dir = "/path/for/anomaly_frames" ##################
+
     heat = scores.view(side, side).cpu().numpy()
     thr = heat.mean() + thr_sigma * heat.std()
     mask = (heat > thr).astype(np.uint8)
@@ -65,7 +67,7 @@ def show_boxes_on_frame(node, frame: np.ndarray, scores: torch.Tensor, thr_sigma
     min_size = 15000
     min_box_score = 0.6
 
-    save_dir = "/path/for/anomaly_frames" ##################
+
     os.makedirs(save_dir, exist_ok=True)
     anomaly = False
 
@@ -119,7 +121,8 @@ class DINOAnomalyNode(Node):
 
         start_time = time.time()
         frame = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
-        frame = cv2.GaussianBlur(frame, (5,5), 0)
+        blur_ksize = 9
+        frame = cv2.GaussianBlur(frame, (blur_ksize, blur_ksize), 0)
 
         img_pil = PILImage.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
         x = preprocess_pil(img_pil).to(self.device)
