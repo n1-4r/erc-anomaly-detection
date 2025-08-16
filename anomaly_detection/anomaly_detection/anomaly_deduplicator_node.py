@@ -13,8 +13,8 @@ SCALE = 1.0
 class AnomalyDeduplicator(Node):
     def __init__(self):
         super().__init__('anomaly_deduplicator')
-        self.image_dir = '/home/smartnihar6/ros2_ws/src/testrun_folder/detected_frames'
-        self.output_dir = '/home/smartnihar6/ros2_ws/src/testrun_folder/filtered_frames'
+        self.image_dir = '/path/to/detected_frames'
+        self.output_dir = '/path/for/filtered_frames'
         os.makedirs(self.output_dir, exist_ok=True)  # Ensure filtered_frames exists
 
         self.orb = cv2.ORB_create(500)
