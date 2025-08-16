@@ -35,7 +35,7 @@ Patch-wise cosine similarities are computed. Unusual patches (low similarity to 
 - ROS2 
 - Python 3.8+  
 - CUDA (optional, for GPU acceleration)  
-- A ROS2-compatible camera publishing to `/front_cam/color/image_raw`  
+- A ROS2-compatible camera  
 
 ---
 
@@ -43,7 +43,7 @@ Patch-wise cosine similarities are computed. Unusual patches (low similarity to 
 
 ```bash
 cd ~/ros2_ws/src
-git clone https://github.com/yourusername/dino_anomaly_ros.git
+git clone https://github.com/n1-4r/erc-anomaly-detection.git
 cd ~/ros2_ws
 rosdep install --from-paths src --ignore-src -r -y
 colcon build
@@ -56,7 +56,8 @@ source install/setup.bash
 
 ```bash
 pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu121
-pip install opencv-python pillow numpy
+pip install pillow numpy
+pip install "opencv-python<2.0"
 pip install cv_bridge
 ```
 DinoV2 is installed automatically using `torch.hub`.
@@ -66,6 +67,6 @@ DinoV2 is installed automatically using `torch.hub`.
 ### Running the Node
 
 ```bash
-ros2 run dino_anomaly_ros dino_anomaly_node`
+ros2 run anomaly_detection anomaly_detection_front`
 ```
 Ensure your camera is publishing to /front_cam/color/image_raw. You can remap the topic if needed.
