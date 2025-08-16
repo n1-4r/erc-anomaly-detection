@@ -10,7 +10,7 @@ class CsvToHtmlPdfNode(Node):
 
         files = []
         description = {}
-        file = open("/home/smartnihar6/ros2_ws/src/testrun_folder/data.csv", 'r')
+        file = open("/path/to/data.csv", 'r')
         reader = csv.reader(file)
         next(reader)
         for row in reader:
@@ -125,13 +125,13 @@ class CsvToHtmlPdfNode(Node):
 """
 
         # Save HTML file
-        html_file_path = '/home/smartnihar6/ros2_ws/src/testrun_folder/results.html'
+        html_file_path = '/path/for/results.html'
         with open(html_file_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
 
         self.get_logger().info(f"HTML report generated at: {html_file_path}")
 
-        HTML(html_file_path).write_pdf("/home/smartnihar6/ros2_ws/src/testrun_folder/report.pdf")
+        HTML(html_file_path).write_pdf("/path/for/report.pdf")
         self.get_logger().info("PDF report generated: report.pdf")
 
 
