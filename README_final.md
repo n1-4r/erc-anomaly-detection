@@ -103,9 +103,7 @@ ros2 run anomaly_detection image_monitor_node
 ros2 run anomaly_detection pdf_generator_node
 ```
 
-## Project Workflow
-
-🧪 Project Workflow
+## 🧪 Project Workflow
 
 1. Camera → DINOv2 anomaly detection → bounding boxes & heatmaps.
 
