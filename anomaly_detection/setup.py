@@ -21,6 +21,9 @@ setup(
     entry_points={
         'console_scripts': [
             'anomaly_detection_node = anomaly_detection.anomaly_detection_node:main',
+            'anomaly_deduplication_node = anomaly_detection.anomaly_deduplicator_node:main',
+            'image_monitor_node = anomaly_detection.image_monitor_node:main',
+            'pdf_generator_node = anomaly_detection.pdf_generator_node:main',
         ],
     },
 )
