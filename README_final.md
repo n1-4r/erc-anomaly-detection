@@ -101,3 +101,16 @@ ros2 run anomaly_detection anomaly_deduplication_node
 ollama run qwen2.5vl:7b-q8_0
 ros2 run anomaly_detection image_monitor_node
 ros2 run anomaly_detection pdf_generator_node
+```
+
+## Project Workflow
+
+🧪 Project Workflow
+
+1. Camera → DINOv2 anomaly detection → bounding boxes & heatmaps.
+
+2. Anomalous frames saved + passed to Mars description pipeline.
+
+3. Ollama generates semantic descriptions and saves to CSV.
+
+4. De-duplication ensures only unique anomalies are logged.
