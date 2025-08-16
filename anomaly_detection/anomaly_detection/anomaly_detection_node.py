@@ -43,13 +43,13 @@ def patch_anomaly_scores(patch_feats: torch.Tensor) -> torch.Tensor:
     return dist.mean(dim=1)
 
 
-def show_boxes_on_frame(node, frame: np.ndarray, scores: torch.Tensor, thr_sigma: float = 1.3 ):
+def show_boxes_on_frame(self, node, frame: np.ndarray, scores: torch.Tensor, thr_sigma: float = 1.1 ):
     N = scores.numel()
     side = int(math.sqrt(N))
     if side * side != N:
         raise ValueError("Anomaly scores length is not a perfect square")
 
-    save_dir = "/path/for/anomaly_frames" ##################
+    save_dir = "/path/to/detected_frames" ##################
 
     heat = scores.view(side, side).cpu().numpy()
     thr = heat.mean() + thr_sigma * heat.std()
@@ -60,39 +60,42 @@ def show_boxes_on_frame(node, frame: np.ndarray, scores: torch.Tensor, thr_sigma
     heat_big = cv2.resize(heat, (W, H), interpolation=cv2.INTER_NEAREST)
 
     kernel = np.ones((7, 7), np.uint8)
-    mask_big = cv2.morphologyEx(mask_big, cv2.MORPH_CLOSE, kernel)
-
     contours, _ = cv2.findContours(mask_big, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    min_size = 15000
+    min_size = 20000
     min_box_score = 0.6
 
-
     os.makedirs(save_dir, exist_ok=True)
-    anomaly = False
 
     for c in contours:
-        x, y, w, h = cv2.boundingRect(c)
+
+        x,y,w,h = cv2.boundingRect(c)
         if w * h < min_size:
             continue
         avg_score = heat_big[y:y + h, x:x + w].mean()
         if avg_score < min_box_score:
             continue
-        anomaly = True
-        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
         
-
-    # Save only if any bounding boxes are drawn
-    if anomaly:
         print(f"[DEBUG] Current working directory: {os.getcwd()}")
 
         print("Anomaly saved.")
 
-        filename = os.path.join(save_dir, f"{node.anomaly_frame_idx:04d}_a={w*h}_x={x+(w/2)}_y={y+(h/2)}_.png")
-        
-        #filename = os.path.join(save_dir, f"image_x={x+(w/2)}_y={y+(h/2)}_.png")
+        filename = os.path.join(save_dir, f"a={node.anomaly_frame_idx:04d}_a={w*h}_x={x+(w/2)}_y={y+(h/2)}_.png")
         node.anomaly_frame_idx += 1
-        cv2.imwrite(filename, frame)
+        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+        cv2.imwrite(filename, frame)        
+
+        # Keep only the latest 30 frames in the folder
+        files = sorted(
+            [os.path.join(save_dir, f) for f in os.listdir(save_dir) if f.endswith(".png")],
+            key=os.path.getmtime
+        )
+        if len(files) > 120:
+            for old_file in files[:-120]:
+                try:
+                    os.remove(old_file)
+                except OSError:
+                    pass
 
     cv2.imshow("DINOv2 Anomaly Detection", frame)
     cv2.waitKey(1)
@@ -106,23 +109,43 @@ class DINOAnomalyNode(Node):
         self.model = load_dino_model(self.device)
         self.subscription = self.create_subscription(
             Image,
-            'front_cam/color/image_raw',  # You can remap this later
+            '/panther/camera_front/image_raw',
             self.image_callback,
             10)
         self.anomaly_frame_idx = 0
-        self.frame_count = 0
-        self.skip_rate = 8
+
+        # Time-based frame skipping
+        self.last_process_time = 0.0
+        self.target_fps = 5.0  # process at most 5 FPS
+        self.process_interval = 1.0 / self.target_fps
+        self.processing = False  # drop frames if still processing
+
         print("[INFO] [DINOv2] Anomaly node initialized.")
 
     def image_callback(self, msg):
-        self.frame_count += 1
-        if self.frame_count % self.skip_rate != 0:
+        now = time.time()
+
+        # Drop frame if processing is still going on
+        if self.processing:
             return
 
-        start_time = time.time()
-        frame = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
-        blur_ksize = 9
-        frame = cv2.GaussianBlur(frame, (blur_ksize, blur_ksize), 0)
+        # Skip frame if not enough time has passed
+        if now - self.last_process_time < self.process_interval:
+            return
+
+        self.last_process_time = now
+        self.processing = True
+
+        try:
+            start_time = time.time()
+            clear_frame = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+        except Exception as e:
+            print(f"[WARN] Failed to receive/convert image: {e}")
+            self.processing = False
+            return
+
+        blur_ksize = 33
+        frame = cv2.GaussianBlur(clear_frame, (blur_ksize, blur_ksize), 0)
 
         img_pil = PILImage.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
         x = preprocess_pil(img_pil).to(self.device)
@@ -138,10 +161,10 @@ class DINOAnomalyNode(Node):
         scores = patch_anomaly_scores(patches)
 
         thr = scores.mean() + scores.std()
-        print(f"Threshold: {thr:.3f}  —  {(scores > thr).sum().item()} anomalous patches of {scores.numel()}")
-        print(f"Time per frame: {time.time() - start_time:.2f} seconds")
 
-        show_boxes_on_frame(self, frame, scores)
+        show_boxes_on_frame(self, self, clear_frame, scores)
+
+        self.processing = False
 
 
 def main(args=None):
